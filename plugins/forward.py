@@ -14,7 +14,7 @@ from datetime import datetime
 IST = pytz.timezone('Asia/Kolkata')
 MessageCount = 0
 BOT_STATUS = "0"
-status = set(int(x) for x in (BOT_STATUS).split())
+status = {int(x) for x in (BOT_STATUS).split()}
 OWNER=int(Config.OWNER_ID)
 @Client.on_message(filters.command("status"))
 async def count(bot, m):
@@ -40,7 +40,7 @@ async def clrdb(bot, message):
     msg = await message.reply("Clearing files from DB...", quote=True)
     try:
         await Data.collection.drop()
-        await msg.edit(f'Cleared DB')
+        await msg.edit('Cleared DB')
     except Exception as e:
         await msg.edit(f'Error: {e}')
                 

@@ -36,8 +36,7 @@ async def run(bot, message):
             return
 
         pattern=".*https://t.me/.*"
-        result = re.match(pattern, channel, flags=re.IGNORECASE)
-        if result:
+        if result := re.match(pattern, channel, flags=re.IGNORECASE):
             print(channel)
             break
         else:
@@ -70,13 +69,13 @@ async def run(bot, message):
                 await chat.reply_text("Wrong Channel ID")
                 continue
 
-            
+
     else:
         #global channel_type
         channel_type="public"
         channel_id = re.search(r"t.me.(.*)", channel)
         #global channel_id_
-        channel_id_=channel_id.group(1)
+        channel_id_ = channel_id[1]
 
     while True:
         try:
@@ -131,16 +130,16 @@ async def run(bot, message):
 @Client.on_callback_query()
 async def cb_handler(bot: Client, query: CallbackQuery):
     filter=""
-    if query.data == "docs":
-        filter="document"
-    elif query.data == "all":
+    if query.data == "all":
         filter="empty"
+    elif query.data == "audio":
+        filter="audio"
+    elif query.data == "docs":
+        filter="document"
     elif query.data == "photos":
         filter="photo"
     elif query.data == "videos":
         filter="video"
-    elif query.data == "audio":
-        filter="audio"
     caption=None
 
 
@@ -152,10 +151,7 @@ async def cb_handler(bot: Client, query: CallbackQuery):
             await bot.send_message(query.from_user.id, "Error!!\n\nRequest timed out.\nRestart by using /index")
             return
         input=get_caption.text
-        if input == "0":
-            caption=None
-        else:
-            caption=input
+        caption = None if input == "0" else input
         break
 
     m = await bot.send_message(
@@ -167,20 +163,20 @@ async def cb_handler(bot: Client, query: CallbackQuery):
     FROM=channel_id_
     try:
         async for MSG in bot.USER.search_messages(chat_id=FROM,offset=skip_no,limit=limit_no,filter=filter):
-            if channel_type == "public":
-                methord="bot"
-                channel=FROM
-                msg=await bot.get_messages(FROM, MSG.message_id)
-            elif channel_type == "private":
+            if channel_type == "private":
                 methord="user"
                 channel=str(FROM)
                 msg=await bot.USER.get_messages(FROM, MSG.message_id)
+            elif channel_type == "public":
+                methord="bot"
+                channel=FROM
+                msg=await bot.get_messages(FROM, MSG.message_id)
             msg_caption=""
             if caption is not None:
                 msg_caption=caption
             elif msg.caption:
                 msg_caption=msg.caption
-            if filter in ("document", "video", "audio", "photo"):
+            if filter in {"document", "video", "audio", "photo"}:
                 for file_type in ("document", "video", "audio", "photo"):
                     media = getattr(msg, file_type, None)
                     if media is not None:
@@ -197,14 +193,13 @@ async def cb_handler(bot: Client, query: CallbackQuery):
                 else:
                     id=f"{FROM}_{msg.message_id}"
                     file_type="others"
-            
+
             message_id=msg.message_id
             try:
                 await save_data(id, channel, message_id, methord, msg_caption, file_type)
             except Exception as e:
                 print(e)
                 await bot.send_message(OWNER, f"LOG-Error-{e}")
-                pass
             msg_count += 1
             mcount += 1
             new_skip_no=str(skip_no+msg_count)
@@ -217,13 +212,10 @@ async def cb_handler(bot: Client, query: CallbackQuery):
                     mcount -= 100
                 except FloodWait as e:
                     print(f"Floodwait {e.x}")
-                    pass
                 except Exception as e:
                     await bot.send_message(chat_id=OWNER, text=f"LOG-Error: {e}")
                     print(e)
-                    pass
         await m.edit(f"Succesfully Indexed <code>{msg_count}</code> messages.")
     except Exception as e:
         print(e)
         await m.edit(text=f"Error: {e}")
-        pass
