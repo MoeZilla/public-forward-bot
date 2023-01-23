@@ -51,6 +51,5 @@ async def get_search_results():
     cursor = Data.find(filter)
     cursor.sort('$natural', -1)
     cursor.skip(0).limit(1)
-    Messages = await cursor.to_list(length=1)
-    return Messages
+    return await cursor.to_list(length=1)
 
