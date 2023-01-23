@@ -20,14 +20,10 @@ buttons=InlineKeyboardMarkup(
         ]
         )
 
-@Client.on_message(filters.private & filters.command('start'))
+@Client.on_message(filters.command('start'))
 async def start(client, message):
-    await client.send_message(
-        chat_id=message.chat.id,
-        text=START_MSG.format(
-                message.from_user.first_name),
-        reply_markup=buttons,
-        parse_mode="html")
+    if not message.chat.type != "private":
+        await message.reply_text(START_MSG.format(message.from_user.first_name), reply_markup=buttons, parse_mode="html")
 
 
 @Client.on_message(filters.command("stop"))
@@ -35,21 +31,16 @@ async def stop_button(bot, message):
 
     if str(message.from_user.id) not in Config.OWNER_ID:
         return
-    msg = await bot.send_message(
-        text="Stoping all processes...",
-        chat_id=message.chat.id
-    )
+    msg = await message.reply_text("Stoping all processes...")
     await asyncio.sleep(1)
     await msg.edit("All Processes Stopped and Restarted")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-@Client.on_message(filters.private & filters.command('help'))
+@Client.on_message(filters.command('help'))
 async def help(client, message):
-    await client.send_message(
-        chat_id=message.chat.id,
-        text=HELP_MSG,
-        parse_mode="html")
+    if not message.chat.type != "private":
+        await message.reply_text(HELP_MSG)
 
 
 @Client.on_callback_query(filters.regex(r'^help$'))
